@@ -1,17 +1,36 @@
 from math import ceil
+from typing import Union
+
+from dt_sms_sdk.phone_number import E164PhoneNumber
 
 
 class Message(object):
     """
     A class representing an SMS message to be sent over the DT SMS API
 
-    Static Methods
+    Attributes
+    ----------
+    sender: Union[E164PhoneNumber, str]
+        The line sending the SMS
+    recipient: E164PhoneNumber
+        The line the SMS should be sent to
+    body: str
+        The text which should be transmitted by the SMS
+
+    Methods
     -------
+    number_of_segments -> int
+        Returns the number of SMS the Message body has to be split
+
     gsm_split_count(body: str) -> int
         Returns the number of SMS the string has to be split
     is_gsm_char_set(body: str) -> bool:
         Returns if the string is using only GSM character set as implemented on the API
     """
+
+    sender: Union[E164PhoneNumber, str]
+    recipient: E164PhoneNumber
+    body: str
 
     # Reference: http://www.unicode.org/Public/MAPPINGS/ETSI/GSM0338.TXT
     gsm_char_full_set = {
@@ -95,14 +114,46 @@ class Message(object):
         "\u0396"  # is treated as non GSM
     }
 
+    def __init__(self, _from: Union[E164PhoneNumber, str], _to: E164PhoneNumber, _body: str):
+        """
+        Parameters
+        ----------
+        _from : Union[E164PhoneNumber, str]
+            The name of the animal
+        _to : Union[E164PhoneNumber, str]
+            The sound the animal makes
+        _body : str
+            The number of legs the animal (default is 4)
+        """
+        self.sender = _from
+        self.recipient = _to
+        self.body = _body
+
+    def number_of_segments(self) -> int:
+        """
+        Returns the number of segments the body of the Message has to be split
+
+        Returns
+        -------
+        int
+            how many SMS the message text will be split
+        """
+        return Message.gsm_split_count(self.body)
+
     @staticmethod
     def is_gsm_char_set(body: str) -> bool:
         """
         Returns if the string is using only GSM character set as implemented on the API
-        :param body:
-            a string representing the message text
-        :return:
-            bool, which is true if all characters of the string are from GSM character set
+
+        Parameters
+        ----------
+        body: str
+            representing the message text
+
+        Returns
+        -------
+        bool
+            is true if all characters of the string are from GSM character set
         """
         used_chars = list(body)
         return set(used_chars).issubset(Message.gsm_char_set)
@@ -111,10 +162,16 @@ class Message(object):
     def _len_non_gsm_char(c) -> int:
         """
         Returns the length of a character if treated as non GSM character set
-        :param c:
-            a character
-        :return:
-            an int how many character slots that character would need using non GSM character set
+
+        Parameters
+        ----------
+        c
+            a character to be checked its length in an SMS
+
+        Returns
+        -------
+        int
+            how many character slots that character would need using non GSM character set
         """
         return 2 if ord(c) > 65535 else 1
 
@@ -122,10 +179,16 @@ class Message(object):
     def _len_non_gsm_str(s: str) -> int:
         """
         Returns the length of the string if its characters are treated as non GSM character set
-        :param s:
-            a string representing the message text
-        :return:
-            an int how many characters the message would need using non GSM character set
+
+        Parameters
+        ----------
+        s: str
+            representing the message text
+
+        Returns
+        -------
+        int
+            how many characters the message would need using non GSM character set
         """
         result = 0
         for c in s:
@@ -137,10 +200,15 @@ class Message(object):
         """
         Returns the number of segments the string has to be split
 
-        :param body:
-            a string representing the complete message text
-        :return:
-            an int how many SMS the message text will be split
+        Parameters
+        ----------
+        body: str
+            representing the complete message text
+
+        Returns
+        -------
+        int
+            how many SMS the str will be split
         """
         if not body:
             return 0

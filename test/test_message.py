@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from dt_sms_sdk.message import Message
+from dt_sms_sdk.phone_number import E164PhoneNumber
 
 
 class DTSMSSDKMessageTest(TestCase):
@@ -198,4 +199,20 @@ class DTSMSSDKMessageTest(TestCase):
                                                  "0123" +        # 134
                                                  "\uFFFF"        # 135, but non GSM
                                                  ), 3)
+
+    def test_init(self):
+        m = Message("NoWhere", E164PhoneNumber("+491755555555"), "Hello World")
+        self.assertEqual(m.sender, "NoWhere")
+        self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
+        self.assertEqual(m.recipient.iso2, "DE")
+        self.assertEqual(m.body, "Hello World")
+        self.assertEqual(m.number_of_segments(), 1)
+
+        m = Message("NoWhere", "+491755555555", "Hello World")
+        self.assertEqual(m.sender, "NoWhere")
+        self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
+        self.assertEqual(m.recipient.iso2, "DE")
+        self.assertEqual(m.body, "Hello World")
+        self.assertEqual(m.number_of_segments(), 1)
+
 

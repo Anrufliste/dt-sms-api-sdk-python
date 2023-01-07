@@ -123,10 +123,13 @@ class Message(object):
         _to : Union[E164PhoneNumber, str]
             The sound the animal makes
         _body : str
-            The number of legs the animal (default is 4)
+            The message which should be sent
         """
         self.sender = _from
-        self.recipient = _to
+        if isinstance(_to, E164PhoneNumber):
+            self.recipient = _to
+        else:
+            self.recipient = E164PhoneNumber(_number=_to)
         self.body = _body
 
     def number_of_segments(self) -> int:

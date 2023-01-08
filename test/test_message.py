@@ -215,4 +215,9 @@ class DTSMSSDKMessageTest(TestCase):
         self.assertEqual(m.body, "Hello World")
         self.assertEqual(m.number_of_segments(), 1)
 
-
+        m = Message("NoWhere", 491755555555, "Hello World")
+        self.assertEqual(m.sender, "NoWhere")
+        self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
+        self.assertEqual(m.recipient.iso2, "DE")
+        self.assertEqual(m.body, "Hello World")
+        self.assertEqual(m.number_of_segments(), 1)

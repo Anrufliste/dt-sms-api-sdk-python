@@ -1,7 +1,8 @@
+from dt_sms_sdk.iso2_mapper import ISO2Mapper
+
 import logging
 logger = logging.getLogger(__name__)
 
-from dt_sms_sdk.iso2_mapper import ISO2Mapper
 
 class E164PhoneNumber(object):
     """
@@ -50,6 +51,19 @@ class E164PhoneNumber(object):
 
     def __init__(self, _number: str, _iso2: str = None):
         """
+        Country Calling Code vs. Region Code vs. ISO2
+        ---------------------------------------------
+        The pricing of the API is based on a specific country refered by ISO2 Code.
+
+        In cases a phone number country calling code is shared by multiple countries - like +1,
+        the region code delivered by libraries like phonelib would be "US".
+        For pricing this is too unspecific, since Canada and the USA have share the same region,
+        but have (e.g. € 0.0058 vs. € 0.0094 Price excl. VAT on December the 31st 2022).
+
+        If you know the country, you can provide its ISO2 Code, if not the class will try to calculate it
+        from the phone number and even includes the area code after the country code to differentiate individual
+        countries within a shared country calling code.
+
         Parameters
         ----------
         _number : str
@@ -62,19 +76,11 @@ class E164PhoneNumber(object):
         E164PhoneNumber
             A phone number in E.164 format and the country it belongs.
 
-
-        Country Calling Code vs. Region Code vs. ISO2
-        ---------
-            The pricing of the API is based on a specific country refered by ISO2 Code.
-
-            In cases a phone number country calling code is shared by multiple countries - like +1,
-            the region code delivered by libraries like phonelib would be "US".
-            For pricing this is too unspecific, since Canada and the USA have share the same region,
-            but have (e.g. € 0.0058 vs. € 0.0094 Price excl. VAT on December the 31st 2022).
-
-            If you know the country, you can provide its ISO2 Code, if not the class will try to calculate it
-            from the phone number and even includes the area code after the country code to differentiate individual
-            countries within a shared country calling code.
+        Raises
+        ------
+        ValueError
+            if _number does not validate against basic number rules or
+            _iso2 does not validate against basic ISO2 rules
         """
         E164PhoneNumber.basic_number_value_validation(number=_number, raising_error=True)
         self.number = _number

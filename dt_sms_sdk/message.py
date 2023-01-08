@@ -3,6 +3,9 @@ from typing import Union
 
 from dt_sms_sdk.phone_number import E164PhoneNumber
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Message(object):
     """
@@ -119,17 +122,30 @@ class Message(object):
         Parameters
         ----------
         _from : Union[E164PhoneNumber, str]
-            The name of the animal
-        _to : Union[E164PhoneNumber, str]
-            The sound the animal makes
+            Specified Sender of the SMS
+        _to : Union[E164PhoneNumber]
+            Receiver of the SMS - might also be given as a str (in E164 notation) or an int,
+            which will be automatically transferred to an E164PhoneNumber object
         _body : str
             The message which should be sent
+
+        Raises
+        ------
+        ValueError
+            if _to can't be transferred to an E164PhoneNumber
         """
         self.sender = _from
         if isinstance(_to, E164PhoneNumber):
             self.recipient = _to
-        else:
+        elif isinstance(_to, str):
+            logger.debug(f'Message: {_to} is transferred from str to E164PhoneNumber without complex validation.')
             self.recipient = E164PhoneNumber(_number=_to)
+        elif isinstance(_to, int):
+            logger.debug(f'Message: {_to} is transferred from int to E164PhoneNumber without complex validation.')
+            self.recipient = E164PhoneNumber(_number=f'+{_to}')
+        else:
+            logger.error(f'Message: {_to} is not a datatype which could be transferred into an E164PhoneNumber object.')
+            raise ValueError('Receiver of message is given as a usable E164PhoneNumber value.')
         self.body = _body
 
     def number_of_segments(self) -> int:

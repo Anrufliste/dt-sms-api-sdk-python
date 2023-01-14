@@ -3,6 +3,25 @@ logger = logging.getLogger(__name__)
 
 
 class ISO2Mapper(object):
+    """
+    A class mapping different keys for a country to ISO2 representation, so ISO2 Code interlinks those
+    different key domains. Additionally lists of ISO2 codes are provided to specify a group and you can look up if a
+    country belongs to it
+
+    Dictionaries
+    ------------
+    country_calling_code_to_ISO2_mapping
+        Country Calling Code of a phone number. There are helping constants
+        country_calling_code_min_length & country_calling_code_max_length which specify the length of the used keys.
+    country_name_to_ISO2_mapping
+        Name of the country used in the DT price list
+
+    Lists
+    -----
+    no_routing_of_ISO2
+        Countries which are not routed by the API
+    """
+
     country_calling_code_to_ISO2_mapping = {
         # https://nationalnanpa.com/area_code_maps/ac_map_static.html
         "1": "US",  # using country calling code 1 for US, as default to skip as much area codes as possible
@@ -93,9 +112,9 @@ class ISO2Mapper(object):
         # "888237": "$A",  # AT&T Cingular Wireless Network
         # "8835110": "$B",  # Bandwidth.com, Inc.
         # "88234": "$C",  # BebbiCell AG
-        # "8818": "$D", "8819": "$$", # Globalstar Inc.
+        # "8818": "$D", "8819": "$D", # Globalstar Inc.
         # "870": "$E",  # Inmarsat
-        # "8816": "$F", "8817": "$$",  # Iridium
+        # "8816": "$F", "8817": "$F",  # Iridium
         # "88232": "$G",  # Maritime Communications Partner (MCP)
         # "888": "$H",  # returned to spare
         # "8835130": "$I",  # Sipme
@@ -314,7 +333,7 @@ class ISO2Mapper(object):
         Parameters
         ----------
         number: str
-            the phone number to calculate the country for
+            the phone number in E164 format to calculate the country for
 
         Returns
         -------

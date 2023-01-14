@@ -1,8 +1,10 @@
 from typing import Dict, Optional
 from enum import Enum
+from decimal import Decimal, getcontext, InvalidOperation
 import requests
 
 from dt_sms_sdk.iso2_mapper import ISO2Mapper
+from dt_sms_sdk.message import Message
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,10 +36,16 @@ class Currency(Enum):
         Raises
         ------
         ValueError
-            if label can't be transferred to an Currency value
+            if label can't be transferred to a Currency value
         """
         if label and label.upper() in ('EUR', 'EURO', '€', '₠'):
             return Currency.EURO
+        elif label in ("$", "﹩", "＄", "¢", "￠", "£", "￡", "¤", "¥", "￥", "֏", "؋", "߾", "߿", "৲", "৳", "৻", "૱", "௹",
+                       "฿", "៛", "₡", "₢", "₣", "₤", "₥", "₦", "₧", "₨", "₩", "￦", "₪", "₫", "₭", "₮", "₯", "₰", "₱",
+                       "₲", "₳", "₴", "₵", "₶", "₷", "₸", "₹", "₺", "₻", "₼", "₽", "₾", "₿", "꠸", "﷼", "𑿝", "𑿞", "𑿟",
+                       "𑿠", "𞋿", "𞲰"):
+            logger.error(f'Currency: {label} could not be transferred to a valid Currency value, yet!')
+            raise NotImplementedError("Given currency symbol could not be transferred to a valid Currency value, yet!")
         else:
             logger.error(f'Currency: {label} could not be transferred to a valid Currency value!')
             raise ValueError("Given value could not be transferred to a valid Currency value!")
@@ -51,30 +59,112 @@ class Price(object):
     ----------
     country: str
         The country name as used on https://developer.telekom.com/api/v1/prices
-    net_price: float
+    net_price: Decimal
         Price before applying tax (vat)
-    gross_price: float
+    gross_price: Decimal
         Price after applying tax (vat)
-    vat: float
+    vat: Decimal
         Amount of tax which applies on netPrice to get grossPrice
     currency: Currency
         The Currency of the netPrice and grossPrice.
     """
     country: str
-    net_price: float
-    gross_price: float
-    vat: float = 0.19
+    net_price: Decimal
+    gross_price: Decimal
+    vat: Decimal = 0.19
     currency: Currency = Currency.EURO
 
-    def __init__(self, country: str, net_price: float, gross_price: float, vat: float = 0.19,
-                 currency: Currency = Currency.EURO):
-        self.country = country
-        self.net_price = net_price
-        self.gross_price = gross_price
-        self.vat = vat
-        self.currency = currency
+    @staticmethod
+    def _decimal(d: Decimal) -> Decimal:
+        """
+        Helper method to transform an object into Decimal with 4 decimal places after the
 
-    def __eq__(self, other):
+        Parameters
+        ----------
+        d: Decimal
+            a decimal object which will cut to 4 decimal places
+            (also a float or any other transformable object will be transformed).
+
+        Returns
+        -------
+        Decimal
+            a Decimal with maximum of 4 decimal places
+
+        Raises
+        ------
+        ValueError
+            if parameter d is not transferable into a Decimal
+        """
+        getcontext().prec = 4
+        if isinstance(d, Decimal):
+            return d
+        elif isinstance(d, float):
+            return Decimal(format(d, '.4f'))
+        else:
+            logger.debug(f'Value {d} is not a Decimal')
+            try:
+                return Decimal(d)
+            except (ValueError, InvalidOperation):
+                logger.error(f'Value {d} could not be transferred to Decimal.')
+                raise ValueError(f'Value {d} could not be transferred to Decimal.')
+
+    def __init__(self, country: str, net_price: Decimal, gross_price: Decimal, vat: Decimal = 0.19,
+                 currency: Currency = Currency.EURO):
+        """
+        Parameters
+        ----------
+        country : str
+            The country name as used in the DT price list
+        net_price: Decimal
+            Price before applying tax (vat)
+        gross_price: Decimal
+            Price after applying tax (vat)
+        vat: Decimal
+            Amount of tax which applies on netPrice to get grossPrice
+        currency: Currency
+            The Currency of the netPrice and grossPrice.
+
+        Returns
+        -------
+        Price
+            an object containing all provided price data
+
+        Raises
+        ------
+        ValueError
+            if net_price, gross_price or vat are not Decimal (or at least not transferable to a Decimal)
+            if currency is not a Currency object (or at least not transferable to a Currency)
+        """
+        self.country = country
+        try:
+            self.net_price = self._decimal(net_price)
+            self.gross_price = self._decimal(gross_price)
+            self.vat = self._decimal(vat)
+        except ValueError:
+            logger.error("Price could only be created if net_price, gross_price AND vat are Decimal.")
+            raise ValueError("Price could only be created if net_price, gross_price AND vat are Decimal.")
+
+        if isinstance(currency, Currency):
+            self.currency = currency
+        elif isinstance(currency, str):
+            try:
+                self.currency = Currency.from_str(currency)
+            except (ValueError, NotImplementedError):
+                logger.error(f'Value {currency} is not convertible to Currency.')
+                raise ValueError("Given currency parameter is not usable on Price.")
+        else:
+            logger.error(f'Value {currency} is not a Currency.')
+            raise ValueError("Given currency parameter is not usable on Price.")
+
+    def __eq__(self, other) -> bool:
+        """
+        Two Price objects are equal, if all their attributes have the same values.
+
+        Returns
+        -------
+        bool
+             if the Price object values is matching the compared object values.
+        """
         return isinstance(other, Price) and self.country == other.country and \
             self.net_price == other.net_price and \
             self.gross_price == other.gross_price and \
@@ -83,6 +173,12 @@ class Price(object):
 
 
 class Pricing(object):
+    """
+     A class providing methods to transform a price list data as provided from DT into a data structure, which is a
+     dictionary using ISO2 code of the country as key and gives a Price object for that country.
+
+     Furthermore, it also provides an offline default pricelist and a method to download the current online one.
+    """
 
     @staticmethod
     def _raw_is_list(raw) -> bool:
@@ -409,4 +505,213 @@ class Pricing(object):
             except requests.exceptions.JSONDecodeError:
                 logger.error('Could not parse Pricing Data from %s into a JSON object.', api_url)
                 return None
+        return result
+
+    price_data: Dict[str, Price]
+
+    def __init__(self, price_list: list = None):
+        """
+        Parameters
+        ----------
+        price_list: list
+            a list of pricing information as used from DT on https://developer.telekom.com/api/v1/prices which will
+            be loaded into objects price_data dictionary keyed by the country ISO2 code.
+        """
+
+        if price_list:
+            self.price_data = Pricing.prices_by_iso2(price_list)
+        else:
+            self.price_data = Pricing.prices_by_iso2(Pricing.default())
+
+        for v in ISO2Mapper.country_name_to_ISO2_mapping.values():
+            if v not in self.price_data.keys():
+                logger.warning(
+                    f'Loaded Pricing Data does not include Country, which is part of country name mapping: {v}'
+                )
+
+    def price_by_iso2(self, iso2: str) -> Optional[Price]:
+        """
+        Getting a Price object by the country's ISO2 code from the price_data
+
+        Parameters
+        ----------
+        iso2: str
+            ISO2 code of the country the Price is to be looked up
+
+        Returns
+        -------
+        Price, optional
+            if ISO2 code could be found in price_data, corresponding Price object is returned
+            otherwise None is returned.
+        """
+        if isinstance(self.price_data, dict):
+            if iso2 in self.price_data.keys():
+                return self.price_data[iso2]
+            else:
+                logger.warning(f'No Price Data for ISO2 Code: {iso2}')
+        else:
+            logger.error(f'Price Data stored in Pricing is not a dictionary.')
+
+    def net_price_by_iso2(self, iso2: str) -> Decimal:
+        """
+        Getting the net price by the country's ISO2 code from the corresponding Price object in the price_data
+
+        Parameters
+        ----------
+        iso2: str
+            ISO2 code of the country the net price is to be looked up
+
+        Returns
+        -------
+        Decimal
+            if ISO2 code could be found in price_data, net price of corresponding Price object is returned
+            otherwise Decimal("NaN") -> 'not a number' is returned.
+        """
+        getcontext().prec = 4
+        p = self.price_by_iso2(iso2)
+        if p:
+            return p.net_price
+        else:
+            return Decimal("NaN")
+
+    def gross_price_by_iso2(self, iso2: str) -> Decimal:
+        """
+        Getting the gross price by the country's ISO2 code from the corresponding Price object in the price_data
+
+        Parameters
+        ----------
+        iso2: str
+            ISO2 code of the country the gross price is to be looked up
+
+        Returns
+        -------
+        Decimal
+            if ISO2 code could be found in price_data, gross price of corresponding Price object is returned
+            otherwise Decimal("NaN") -> 'not a number' is returned.
+        """
+        getcontext().prec = 4
+        p = self.price_by_iso2(iso2)
+        if p:
+            return p.gross_price
+        else:
+            return Decimal("NaN")
+
+    def message_net_price(self, message: Message) -> Decimal:
+        """
+        Getting the net price for a message, by looking up the net price for the message receiver country
+        and multiply this with the number of needed SMS slits, to have overall net price for sending this message.
+
+        Parameters
+        ----------
+        message: Message
+            Message which could be sent over the API
+
+        Returns
+        -------
+        Decimal
+            if price for the message receiver could be found in price_data, overall net price will be returned.
+            otherwise Decimal("NaN") -> 'not a number' is returned.
+        """
+        getcontext().prec = 4
+        if not isinstance(message, Message):
+            return Decimal("NaN")
+        p = self.net_price_by_iso2(message.recipient.iso2)
+        if p.is_nan():
+            return p
+        return p * message.number_of_segments()
+
+    def message_gross_price(self, message: Message) -> Decimal:
+        """
+        Getting the gross price for a message, by looking up the gross price for the message receiver country
+        and multiply this with the number of needed SMS slits, to have overall gross price for sending this message.
+
+        Parameters
+        ----------
+        message: Message
+            Message which could be sent over the API
+
+        Returns
+        -------
+        Decimal
+            if price for the message receiver could be found in price_data, overall gross price will be returned.
+            otherwise Decimal("NaN") -> 'not a number' is returned.
+        """
+        getcontext().prec = 4
+        if not isinstance(message, Message):
+            return Decimal("NaN")
+        p = self.gross_price_by_iso2(message.recipient.iso2)
+        if p.is_nan():
+            return p
+        return p * message.number_of_segments()
+
+    def messages_net_price(self, list_of_messages: list[Message], all_or_none: bool = False) -> Decimal:
+        """
+        Getting the total net price for a list of messages, by looking up the net price for each message
+        and sums them up. If at least one is not defined, it could either be ignored or the total net price
+        is not defined, too (controlled by parameter all_or_none).
+
+        Parameters
+        ----------
+        list_of_messages: list(Message)
+            List of Message objects which could be sent over the API
+        all_or_none: bool
+            if False non defined prices will be ignored
+            if True and at least one non defined net price is calculated for a message,
+            the total result is also not defined
+
+        Returns
+        -------
+        Decimal
+            Total net price for message. If all_or_none is Ture and at least one message net price
+            is 'not a number' the Decimal("NaN") -> 'not a number' is returned.
+        """
+        result = Decimal("0")
+        if list_of_messages and len(list_of_messages) > 0:
+            for m in list_of_messages:
+                p = self.message_net_price(m)
+                if p.is_nan():
+                    if all_or_none:
+                        logger.info(f'Aborted summing up the net prices of a message list, '
+                                    f'because at least one Price was not available.')
+                        return p
+                else:
+                    result += p
+        else:
+            logger.debug(f'List for messages_gross_price was None or empty.')
+        return result
+
+    def messages_gross_price(self, list_of_messages: list[Message], all_or_none: bool = False) -> Decimal:
+        """
+        Getting the total gross price for a list of messages, by looking up the gross price for each message
+        and sums them up. If at least one is not defined, it could either be ignored or the total gross price
+        is not defined, too(controlled by parameter all_or_none).
+
+        Parameters
+        ----------
+        list_of_messages: list(Message)
+            List of Message objects which could be sent over the API
+        all_or_none: bool
+            if False non defined prices will be ignored
+            if True and at least one non defined gross price is calculated for a message,
+            the total result is also not defined
+
+        Returns
+        -------
+        Decimal
+            Total gross price for message. If all_or_none is Ture and at least one message gross price
+            is 'not a number' the Decimal("NaN") -> 'not a number' is returned.
+        """
+        result = Decimal("0")
+        if list_of_messages and len(list_of_messages) > 0:
+            for m in list_of_messages:
+                p = self.message_gross_price(m)
+                if p.is_nan():
+                    if all_or_none:
+                        logger.info(f'Aborted summing up the gross prices of a message list, '
+                                    f'because at least one Price was not available.')
+                        return p
+                else:
+                    result += p
+        else:
+            logger.debug(f'List for messages_gross_price was None or empty.')
         return result

@@ -3,6 +3,9 @@ from dt_sms_sdk.iso2_mapper import ISO2Mapper
 import logging
 logger = logging.getLogger(__name__)
 
+DIGITS = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+MIN_DIGITS = 6  # basic minimum, while country code ranges 1..3, area code 0..5 and number 1..9, combination not under 6
+
 
 class E164PhoneNumber(object):
     """
@@ -47,6 +50,24 @@ class E164PhoneNumber(object):
                 raise ValueError('Number of E164PhoneNumber must be a str.')
             return False
         else:
+            if len(number) < MIN_DIGITS + 1:
+                logger.debug(f'E164PhoneNumber: {number} is too short - needs to have at least {MIN_DIGITS} digits.')
+                if raising_error:
+                    raise ValueError(f'Number of E164PhoneNumber must be a str with at least {MIN_DIGITS} characters.')
+                return False
+            if not number[0] == "+":
+                logger.debug(f'E164PhoneNumber: {number} does not start with "+"')
+                if raising_error:
+                    raise ValueError('Number of E164PhoneNumber must be a str starting with "+".')
+                return False
+            for c in number[1:]:
+                if c not in DIGITS:
+                    logger.debug(
+                        f'E164PhoneNumber: {number} uses different characters than "0".."9" after initial "+".')
+                    if raising_error:
+                        raise ValueError(
+                            'Number of E164PhoneNumber must be a str using only "0".."9" after initial "+".')
+                    return False
             return True
 
     def __init__(self, _number: str, _iso2: str = None):
@@ -92,9 +113,26 @@ class E164PhoneNumber(object):
             logger.debug('ISO2 of E164PhoneNumber calculated from its number.')
             self.iso2 = ISO2Mapper.number_to_iso2(_number)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Two E164PhoneNumber objects are equal, if their iso2 codes and number attributes have the same values.
+
+        Returns
+        -------
+        bool
+            if the E164PhoneNumber object values is matching the compared object values v.
         """
         return isinstance(other, E164PhoneNumber) and \
             self.iso2 == other.iso2 and self.number == other.number
+
+    def __str__(self) -> str:
+        """
+        String representation of an E164PhoneNumber object just focusing on the plain E164 phone number
+        and not the calculated attributes like ISO2 code from that.
+
+        Returns
+        -------
+        str
+            Returns the number attribute of the object, since that should be the E164 phone number
+        """
+        return self.number

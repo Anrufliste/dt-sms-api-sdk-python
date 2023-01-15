@@ -200,23 +200,45 @@ class DTSMSSDKMessageTest(TestCase):
                                                  "\uFFFF"        # 135, but non GSM
                                                  ), 3)
 
-    def test_init(self):
+    def test_init_sender(self):
         m = Message("NoWhere", E164PhoneNumber("+491755555555"), "Hello World")
         self.assertEqual(m.sender, "NoWhere")
+
+        m = Message("+4917111111", E164PhoneNumber("+491755555555"), "Hello World")
+        self.assertEqual(m.sender, E164PhoneNumber("+4917111111"))
+
+        m = Message(4917111111, E164PhoneNumber("+491755555555"), "Hello World")
+        self.assertEqual(m.sender, E164PhoneNumber("+4917111111"))
+
+        m = Message("+49", E164PhoneNumber("+491755555555"), "Hello World")
+        self.assertEqual(m.sender, "+49")
+
+    def test_init_receiver(self):
+        m = Message("NoWhere", E164PhoneNumber("+491755555555"), "Hello World")
         self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
         self.assertEqual(m.recipient.iso2, "DE")
-        self.assertEqual(m.body, "Hello World")
-        self.assertEqual(m.number_of_segments(), 1)
+
+        m = Message("NoWhere", E164PhoneNumber("+491755555555", "GB"), "Hello World")
+        self.assertEqual(m.recipient.number, "+491755555555")
+        self.assertEqual(m.recipient.iso2, "GB")
 
         m = Message("NoWhere", "+491755555555", "Hello World")
-        self.assertEqual(m.sender, "NoWhere")
         self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
         self.assertEqual(m.recipient.iso2, "DE")
-        self.assertEqual(m.body, "Hello World")
-        self.assertEqual(m.number_of_segments(), 1)
 
         m = Message("NoWhere", 491755555555, "Hello World")
-        self.assertEqual(m.sender, "NoWhere")
+        self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
+        self.assertEqual(m.recipient.iso2, "DE")
+
+        with self.assertRaises(ValueError):
+            Message("NoWhere", "+49", "Hello World")
+
+        with self.assertRaises(ValueError):
+            Message("NoWhere", "SomeWhere", "Hello World")
+
+    def test_init(self):
+        m = Message(E164PhoneNumber("+49175444444"), E164PhoneNumber("+491755555555"), "Hello World")
+        self.assertEqual(m.sender, E164PhoneNumber("+49175444444"))
         self.assertEqual(m.recipient, E164PhoneNumber("+491755555555"))
         self.assertEqual(m.recipient.iso2, "DE")
         self.assertEqual(m.body, "Hello World")

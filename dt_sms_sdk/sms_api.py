@@ -157,20 +157,20 @@ class SMSAPIMessageStatus(Enum):
             An SMSAPIMessageStatus if value could be mapped or None if not.
         """
         if label:
-            l = label.upper()
-            if l == 'ACCEPTED':
+            temp_label = label.upper()
+            if temp_label == 'ACCEPTED':
                 return SMSAPIMessageStatus.ACCEPTED
-            elif l == 'QUEUED':
+            elif temp_label == 'QUEUED':
                 return SMSAPIMessageStatus.QUEUED
-            elif l == 'UNDELIVERED':
+            elif temp_label == 'UNDELIVERED':
                 return SMSAPIMessageStatus.UNDELIVERED
-            elif l == 'SENDING':
+            elif temp_label == 'SENDING':
                 return SMSAPIMessageStatus.SENDING
-            elif l == 'SENT':
+            elif temp_label == 'SENT':
                 return SMSAPIMessageStatus.SENT
-            elif l == 'DELIVERED':
+            elif temp_label == 'DELIVERED':
                 return SMSAPIMessageStatus.DELIVERED
-            elif l == 'FAILED':
+            elif temp_label == 'FAILED':
                 return SMSAPIMessageStatus.FAILED
         logger.error(f'SMSAPIMessageStatus: {label} could not be transferred to a valid SMSAPIMessageStatus value!')
 
@@ -252,7 +252,7 @@ class SMSAPIResponse(object):
     num_segments: int
 
     def __init__(self, sid: str, date_created: str, date_updated: str,
-                 message_status: str, message_from: str, message_to: str,  message_body: str,
+                 message_status: str, message_from: str, message_to: str, message_body: str,
                  uri: str, num_segments: int, direction: str,
                  api_version: str = "1.1.5"):
         """
@@ -283,6 +283,11 @@ class SMSAPIResponse(object):
         num_segments: int
             Amount of SMS the SMS API split the body in the respective encoding.
 
+        Returns
+        -------
+        SMSAPIResponse
+            A SMSAPIResponse object holding SMS API responded data
+
         Raises
         ------
         ValueError
@@ -293,7 +298,7 @@ class SMSAPIResponse(object):
         self.date_created = datetime.strptime(date_created, SMSAPI_DATETIME_FORMAT)
         self.date_updated = datetime.strptime(date_updated, SMSAPI_DATETIME_FORMAT)
         self.status = SMSAPIMessageStatus.from_str(message_status)
-        self.message = Message(_from=message_from, _to=E164PhoneNumber(message_to), _body=message_body)
+        self.message = Message(sender=message_from, recipient=E164PhoneNumber(message_to), body=message_body)
         self.uri = uri
         self.num_segments = num_segments
         self.api_version = api_version
@@ -311,7 +316,7 @@ class SMSAPIResponse(object):
         Parameters
         ----------
         d: dict
-            a dictionary of SMSAPIResponse values labeld as used on the API json itself.
+            a dictionary of SMSAPIResponse values labeled as used on the API json itself.
 
         Returns
         -------
@@ -332,7 +337,7 @@ class SMSAPIResponse(object):
                               )
 
 
-class Client(object):
+class SMSAPIClient(object):
     """
     A class which is used to encapsulate the communication to the DT SMS API.
 
@@ -344,16 +349,55 @@ class Client(object):
     Methods
     -------
     send(self, message: Message) -> SMSAPIResponse:
-        Client object will send the Message Object using its API Key and gives back an SMSAPIResponse or
+        SMSAPIClient object will send the Message Object using its API Key and gives back an SMSAPIResponse or
         throws an SMSAPIError or a subclass of that.
 
     """
     api_key: str
 
     def __init__(self, api_key: str):
+        """
+        Parameters
+        ----------
+        api_key
+            The accounts api key which authorize any further API request at the DT Developer Portal
+
+        Returns
+        -------
+        SMSAPIClient
+            A SMSAPIClient object which could be used to invoke SMS API endpoints at the DT Developer Portal
+        """
         self.api_key = api_key
 
     def status(self, sid: Union[str, SMSAPIResponse]) -> SMSAPIResponse:
+        """
+        This method will query the status of a Message sent over the DT SMS API
+
+        Parameters
+        ----------
+        sid: Union[str, SMSAPIResponse]
+            Identifier of the Message, which is part of the SMSAPIResponse object you get back from the send method.
+            You could either provide the sid string of that object attribute or just provide the attribute and the method
+            will get the sid attribute from it.
+
+        Returns
+        -------
+        SMSAPIResponse
+            The SMSAPIResponse objects holds all data returned by the DT SMS API
+
+        Raises
+        ------
+        SMSAPIError
+            All upcoming (and then not directly supported) Errors raises this base class error.
+        SMSAPINotReachableError
+            If the DT SMS API could not be reached technically.
+        NotAuthorizedError
+            API Key could not be authorized
+        MessageNotFoundError
+            If no status could be found for the given message id (at the used Account)
+        InternalSMSAPIError
+            The DT SMS API has an internal error
+        """
         if isinstance(sid, SMSAPIResponse):
             api_url = f'https://{SMSAPI_HOST}{sid.uri}'
             m_id = sid.sid
@@ -383,17 +427,16 @@ class Client(object):
         elif response.status_code == 500:
             raise InternalSMSAPIError()
         else:
-            error_response = response.json()
             raise SMSAPIError(
                     f'While querying the message status, '
-                    f'the API raised a new {response.status_code} error with message: "{error_response["message"]}"'
+                    f'the API raised a new {response.status_code} error with message: "{response.text}"'
             )
 
     def send(self, message: Message) -> SMSAPIResponse:
         """
         This method will send the Message to the DT SMS API
 
-        Attributes
+        Parameters
         ----------
         message: Message
             The Message object which holds all necessary data: from, to and body
@@ -407,6 +450,8 @@ class Client(object):
         ------
         SMSAPIError
             All upcoming (and then not directly supported) Errors raises this base class error.
+        SMSAPINotReachableError
+            If the DT SMS API could not be reached technically.
         NotAuthorizedError
             API Key could not be authorized
         SenderNumberNotVerifiedError
@@ -455,10 +500,7 @@ class Client(object):
         elif response.status_code == 500:
             raise InternalSMSAPIError()
         else:
-            error_response = response.json()
             raise SMSAPIError(
                     f'While sending a message, '
-                    f'the API raised a new {response.status_code} error with message: "{error_response["message"]}"'
+                    f'the API raised a new {response.status_code} error with message: "{response.text}"'
             )
-
-

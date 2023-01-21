@@ -12,7 +12,7 @@ class DTSMSSDKISO2MapperTest(TestCase):
         """
         iso2 = set(val for val in ISO2Mapper.country_name_to_ISO2_mapping.values())
         self.assertEqual(len(iso2), len(ISO2Mapper.country_name_to_ISO2_mapping.values()),
-                         msg=f'Not all iso2 codes in ISO2Mapper.country_calling_code_to_ISO2_mapping are unique')
+                         msg='Not all iso2 codes in ISO2Mapper.country_calling_code_to_ISO2_mapping are unique')
 
     def test_all_iso_of_country_in_iso_of_phone_number(self):
         """

@@ -347,7 +347,7 @@ class ISO2Mapper(object):
         # cc to region and can group common regions with short code and only need longer for the rare exceptions
         for i in range(ISO2Mapper.country_calling_code_min_length, ISO2Mapper.country_calling_code_max_length + 1):
             if l > i:
-                cc = number[1:i+1]
+                cc = number[1: i + 1]
                 if cc in ISO2Mapper.country_calling_code_to_ISO2_mapping.keys():
                     result = ISO2Mapper.country_calling_code_to_ISO2_mapping[cc]
         return result

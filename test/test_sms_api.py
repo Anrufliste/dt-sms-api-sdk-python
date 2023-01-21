@@ -1,7 +1,7 @@
 from unittest import TestCase
 from datetime import datetime, timezone
 
-from dt_sms_sdk.sms_api import Client, NotAuthorizedError, SenderNumberNotVerifiedError, UnsupportedMediaTypeError, \
+from dt_sms_sdk.sms_api import SMSAPIClient, NotAuthorizedError, SenderNumberNotVerifiedError, UnsupportedMediaTypeError, \
     NotEnoughMoneyOnTheWalletError, InternalSMSAPIError, NoRouteToRecipientNumberError, SMSAPIError, \
     SMSAPIMessageStatus, SMSMessageDirection, MessageNotFoundError
 from dt_sms_sdk.message import Message
@@ -26,7 +26,7 @@ class DTSMSSDKAPIClient(TestCase):
         self.assertEqual(request.method, "POST")
 
     def test_init(self):
-        c = Client(api_key="myKey")
+        c = SMSAPIClient(api_key="myKey")
         self.assertEqual(c.api_key, "myKey")
 
     def test_send_401(self):
@@ -39,8 +39,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Key")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Invalid Key")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(NotAuthorizedError, c.send, m)
 
     def test_send_415(self):
@@ -61,8 +61,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Media Type")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Invalid Media Type")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(UnsupportedMediaTypeError, c.send, m)
 
     def test_send_422_invalid_number(self):
@@ -82,8 +82,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Number")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Invalid Number")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(SenderNumberNotVerifiedError, c.send, m)
 
     def test_send_422_not_enough_money(self):
@@ -103,8 +103,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Number")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Invalid Number")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(NotEnoughMoneyOnTheWalletError, c.send, m)
 
     def test_send_422_invalid_route(self):
@@ -124,8 +124,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Route")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Invalid Route")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(NoRouteToRecipientNumberError, c.send, m)
 
     def test_send_422_future_error(self):
@@ -145,8 +145,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Future")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Future")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(SMSAPIError, c.send, m)
 
     def test_send_500(self):
@@ -166,8 +166,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Server Error")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Server Error")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(InternalSMSAPIError, c.send, m)
 
     def test_send_200(self):
@@ -194,8 +194,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Good Case")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Good Case")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             r = c.send(m)
             self.assertEqual(r.sid, "23bcd1bb62dc2248596d52e9")
             self.assertEqual(r.date_created, datetime(year=2023, month=1, day=11,
@@ -236,8 +236,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Good Case")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Good Case")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             with self.assertLogs() as captured:
                 r = c.send(m)
             self.assertEqual(r.sid, "23bcd1bb62dc2248596d52e9")
@@ -276,8 +276,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Future2")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Future2")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             self.assertRaises(SMSAPIError, c.send, m)
 
     def test_status_200(self):
@@ -303,7 +303,7 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Good Case")
+            c = SMSAPIClient(api_key="Good Case")
             r = c.status("23bcd1bb62dc2248596d52e9")
             self.assertEqual(r.sid, "23bcd1bb62dc2248596d52e9")
             self.assertEqual(r.date_created, datetime(year=2023, month=1, day=11,
@@ -343,7 +343,7 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Good Case")
+            c = SMSAPIClient(api_key="Good Case")
             with self.assertLogs() as captured:
                 r = c.status("23bcd1bb62dc2248596d52e9")
             self.assertEqual(r.sid, "23bcd1bb62dc2248596d52e9")
@@ -375,7 +375,7 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid Key")
+            c = SMSAPIClient(api_key="Invalid Key")
             self.assertRaises(NotAuthorizedError, c.status, "xxxxxxx")
 
     def test_status_404(self):
@@ -396,7 +396,7 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Invalid SID")
+            c = SMSAPIClient(api_key="Invalid SID")
             self.assertRaises(MessageNotFoundError, c.status, "xxxxxxx")
 
     def test_status_500(self):
@@ -416,7 +416,7 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Server Error")
+            c = SMSAPIClient(api_key="Server Error")
             self.assertRaises(InternalSMSAPIError, c.status, "xxxxxxx")
 
     def test_status_xxx_future_error(self):
@@ -436,11 +436,11 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Future3")
+            c = SMSAPIClient(api_key="Future3")
             self.assertRaises(SMSAPIError, c.status, "xxxxxxx")
 
     def test_status_usage(self):
-        c = Client(api_key="usage")
+        c = SMSAPIClient(api_key="usage")
         self.assertRaises(ValueError, c.status, 1)
         self.assertRaises(ValueError, c.status, None)
 
@@ -480,8 +480,8 @@ class DTSMSSDKAPIClient(TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.add_matcher(custom_matcher)
-            c = Client(api_key="Full")
-            m = Message(_from="+491755555555", _to="+4915111111111", _body="Hello World")
+            c = SMSAPIClient(api_key="Full")
+            m = Message(sender="+491755555555", recipient="+4915111111111", body="Hello World")
             r1 = c.send(m)
             self.assertEqual(r1.sid, "23bcd1bb62dc2248596d52e9")
             self.assertEqual(r1.date_created, datetime(year=2023, month=1, day=11,

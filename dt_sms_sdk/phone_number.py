@@ -70,7 +70,7 @@ class E164PhoneNumber(object):
                     return False
             return True
 
-    def __init__(self, _number: str, _iso2: str = None):
+    def __init__(self, number: str, iso2: str = None):
         """
         Country Calling Code vs. Region Code vs. ISO2
         ---------------------------------------------
@@ -87,9 +87,9 @@ class E164PhoneNumber(object):
 
         Parameters
         ----------
-        _number : str
+        number : str
             A phone number in E.164 format - starting with "+" followed by country code
-        _iso2 : str, optional
+        iso2 : str, optional
             ISO2 Code of the country
 
         Returns
@@ -103,15 +103,15 @@ class E164PhoneNumber(object):
             if _number does not validate against basic number rules or
             _iso2 does not validate against basic ISO2 rules
         """
-        E164PhoneNumber.basic_number_value_validation(number=_number, raising_error=True)
-        self.number = _number
+        E164PhoneNumber.basic_number_value_validation(number=number, raising_error=True)
+        self.number = number
 
-        if _iso2:
-            if ISO2Mapper.basic_iso2_value_validation(iso2=_iso2, raising_error=True):
-                self.iso2 = _iso2.upper()
+        if iso2:
+            if ISO2Mapper.basic_iso2_value_validation(iso2=iso2, raising_error=True):
+                self.iso2 = iso2.upper()
         else:
             logger.debug('ISO2 of E164PhoneNumber calculated from its number.')
-            self.iso2 = ISO2Mapper.number_to_iso2(_number)
+            self.iso2 = ISO2Mapper.number_to_iso2(number)
 
     def __eq__(self, other) -> bool:
         """

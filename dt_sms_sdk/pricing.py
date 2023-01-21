@@ -22,7 +22,7 @@ class Currency(Enum):
     def from_str(label: str):
         """
         Returns Enum value for a currency for a given string or
-        throws a NotImplementedError if no matching value could be found
+        throws a NotImplementedError or ValueError
 
         Parameters
         ----------
@@ -35,8 +35,10 @@ class Currency(Enum):
 
         Raises
         ------
+        NotImplementedError
+            if label is a Unicode Symbol for a currency, which is not yet supported by the API
         ValueError
-            if label can't be transferred to a Currency value
+            if label can't be identified as Currency value at all
         """
         if label and label.upper() in ('EUR', 'EURO', '€', '₠'):
             return Currency.EURO
@@ -516,6 +518,13 @@ class Pricing(object):
         price_list: list
             a list of pricing information as used from DT on https://developer.telekom.com/api/v1/prices which will
             be loaded into objects price_data dictionary keyed by the country ISO2 code.
+
+        Returns
+        -------
+        Pricing
+            A Pricing object which holds the given price list internally as Dict[str, Price], so the object has quick
+            access to Price objects by ISO2 codes. If no price data parameter has been provided, the object is loading
+            the class default price list.
         """
 
         if price_list:
@@ -550,7 +559,7 @@ class Pricing(object):
             else:
                 logger.warning(f'No Price Data for ISO2 Code: {iso2}')
         else:
-            logger.error(f'Price Data stored in Pricing is not a dictionary.')
+            logger.error('Price Data stored in Pricing is not a dictionary.')
 
     def net_price_by_iso2(self, iso2: str) -> Decimal:
         """
@@ -671,13 +680,13 @@ class Pricing(object):
                 p = self.message_net_price(m)
                 if p.is_nan():
                     if all_or_none:
-                        logger.info(f'Aborted summing up the net prices of a message list, '
-                                    f'because at least one Price was not available.')
+                        logger.info('Aborted summing up the net prices of a message list, '
+                                    'because at least one Price was not available.')
                         return p
                 else:
                     result += p
         else:
-            logger.debug(f'List for messages_gross_price was None or empty.')
+            logger.debug('List for messages_gross_price was None or empty.')
         return result
 
     def messages_gross_price(self, list_of_messages: list[Message], all_or_none: bool = False) -> Decimal:
@@ -707,11 +716,11 @@ class Pricing(object):
                 p = self.message_gross_price(m)
                 if p.is_nan():
                     if all_or_none:
-                        logger.info(f'Aborted summing up the gross prices of a message list, '
-                                    f'because at least one Price was not available.')
+                        logger.info('Aborted summing up the gross prices of a message list, '
+                                    'because at least one Price was not available.')
                         return p
                 else:
                     result += p
         else:
-            logger.debug(f'List for messages_gross_price was None or empty.')
+            logger.debug('List for messages_gross_price was None or empty.')
         return result

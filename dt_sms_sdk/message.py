@@ -93,8 +93,7 @@ class Message(object):
     """
     A class representing an SMS message to be sent over the DT SMS API
 
-    Attributes
-    ----------
+
     sender: Union[E164PhoneNumber, str]
         The line sending the SMS
     recipient: E164PhoneNumber
@@ -117,50 +116,56 @@ class Message(object):
     recipient: E164PhoneNumber
     body: str
 
-    def __init__(self, _from: Union[E164PhoneNumber, str, int], _to: Union[E164PhoneNumber, str, int], _body: str):
+    def __init__(self, sender: Union[E164PhoneNumber, str, int], recipient: Union[E164PhoneNumber, str, int], body: str):
         """
         Parameters
         ----------
-        _from : Union[E164PhoneNumber, str, int]
+        sender : Union[E164PhoneNumber, str, int]
             Specified Sender of the SMS, if str is given in E164 notation, it will be stored as E164PhoneNumber
             otherwise str is keept
-        _to : Union[E164PhoneNumber, str, int]
+        recipient : Union[E164PhoneNumber, str, int]
             Receiver of the SMS - might also be given as a str (in E164 notation) or an int,
             which will be automatically transferred to an E164PhoneNumber object, if it can't an Error is raised
-        _body : str
+        body : str
             The message which should be sent
+
+        Returns
+        -------
+        Message
+            A Message object holding provided data.
 
         Raises
         ------
         ValueError
             if _to can't be transferred to an E164PhoneNumber
         """
-        if isinstance(_from, E164PhoneNumber):
-            self.sender = _from
-        elif isinstance(_from, str):
-            if E164PhoneNumber.basic_number_value_validation(_from):
-                logger.debug(f'Message: {_from} is transferred from str to E164PhoneNumber without complex validation.')
-                self.sender = E164PhoneNumber(_number=_from)
+        if isinstance(sender, E164PhoneNumber):
+            self.sender = sender
+        elif isinstance(sender, str):
+            if E164PhoneNumber.basic_number_value_validation(sender):
+                logger.debug(f'Message: {sender} is transferred from str to E164PhoneNumber without complex validation.')
+                self.sender = E164PhoneNumber(number=sender)
             else:
-                logger.debug(f'Message: {_from} is NOT transferred from str to E164PhoneNumber, '
+                logger.debug(f'Message: {sender} is NOT transferred from str to E164PhoneNumber, '
                              f'because basic_number_value_validation failed on it.')
-                self.sender = _from
-        elif isinstance(_from, int):
-            logger.debug(f'Message: {_from} is transferred from int to E164PhoneNumber without complex validation.')
-            self.sender = E164PhoneNumber(_number=f'+{_from}')
+                self.sender = sender
+        elif isinstance(sender, int):
+            logger.debug(f'Message: {sender} is transferred from int to E164PhoneNumber without complex validation.')
+            self.sender = E164PhoneNumber(number=f'+{sender}')
 
-        if isinstance(_to, E164PhoneNumber):
-            self.recipient = _to
-        elif isinstance(_to, str):
-            logger.debug(f'Message: {_to} is transferred from str to E164PhoneNumber without complex validation.')
-            self.recipient = E164PhoneNumber(_number=_to)
-        elif isinstance(_to, int):
-            logger.debug(f'Message: {_to} is transferred from int to E164PhoneNumber without complex validation.')
-            self.recipient = E164PhoneNumber(_number=f'+{_to}')
+        if isinstance(recipient, E164PhoneNumber):
+            self.recipient = recipient
+        elif isinstance(recipient, str):
+            logger.debug(f'Message: {recipient} is transferred from str to E164PhoneNumber without complex validation.')
+            self.recipient = E164PhoneNumber(number=recipient)
+        elif isinstance(recipient, int):
+            logger.debug(f'Message: {recipient} is transferred from int to E164PhoneNumber without complex validation.')
+            self.recipient = E164PhoneNumber(number=f'+{recipient}')
         else:
-            logger.error(f'Message: {_to} is not a datatype which could be transferred into an E164PhoneNumber object.')
+            logger.error(f'Message: {recipient} is not a datatype, '
+                         f'which could be transferred into an E164PhoneNumber object.')
             raise ValueError('Receiver of message is given as a usable E164PhoneNumber value.')
-        self.body = _body
+        self.body = body
 
     def number_of_segments(self) -> int:
         """
@@ -261,6 +266,15 @@ class Message(object):
             return 1
 
     def data(self) -> dict:
+        """
+        Getting the Message object in the structure which the SMS API understands.
+
+        Returns
+        -------
+        dict
+            A dict with the keys for the Message object attributes how they are used on the API
+
+        """
         return {
             'From': str(self.sender),
             'To': str(self.recipient),

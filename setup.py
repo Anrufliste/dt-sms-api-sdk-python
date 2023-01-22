@@ -6,6 +6,9 @@ import setuptools
 
 here = os.path.abspath(os.path.dirname(__file__))
 
+with open(os.path.join(here, 'requirements.txt')) as f:
+    requirements = f.read()
+
 with open(os.path.join(here, 'README.md')) as f:
     long_description = f.read()
 
@@ -21,5 +24,6 @@ setuptools.setup(
     author_email='uDTSMSAPISDK@anrufliste.com',
     python_requires='>=3.7',
     package_dir={'': 'dt_sms_sdk'},
-    packages=setuptools.find_packages(where='dt_sms_sdk')
+    packages=setuptools.find_packages(where='dt_sms_sdk'),
+    install_requires=requirements
 )

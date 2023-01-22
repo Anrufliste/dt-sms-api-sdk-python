@@ -9,8 +9,11 @@ except ImportError:
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-with open(os.path.join(here, 'requirements.txt')) as f:
-    requirements = f.read().splitlines()
+#with open(os.path.join(here, 'requirements.txt')) as f:
+#    requirements = f.read().splitlines()
+
+with open('requirements.txt', 'r', encoding='utf-8') as fh:
+    requirements = fh.read()
 
 with open(os.path.join(here, 'README.md')) as f:
     long_description = f.read()

@@ -31,7 +31,7 @@ setup(
     author='Emil Thies',
     author_email='uDTSMSAPISDK@anrufliste.com',
     packages=["dt_sms_sdk"],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements
 )

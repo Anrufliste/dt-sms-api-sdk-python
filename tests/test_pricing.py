@@ -10,7 +10,7 @@ class DTSMSSDKPricingTest(TestCase):
 
     def _test_all_pricing_data_countries_are_mapped_to_iso(self, pricing_data, pricing_data_label):
         """
-        Helper Method, to test if the country names used in pricing data are available in iso mapping.
+        Helper Method, to tests if the country names used in pricing data are available in iso mapping.
 
         This method will be used for the offline / default and the currently online Pricing Data.
         """
@@ -32,7 +32,7 @@ class DTSMSSDKPricingTest(TestCase):
 
     def _test_all_iso_are_mapped_to_pricing_data_countries(self, pricing_data, pricing_data_label):
         """
-        Helper Method, to test if the country names in iso mapping are used in pricing data.
+        Helper Method, to tests if the country names in iso mapping are used in pricing data.
 
         This method will be used for the offline / default and the currently online Pricing Data.
         """
@@ -70,7 +70,7 @@ class DTSMSSDKPricingTest(TestCase):
 
         def custom_matcher(request):
             self.assertTrue("User-Agent" in request.headers.keys())
-            # "Host" is not part on this level and will automatically be added - no need to test.
+            # "Host" is not part on this level and will automatically be added - no need to tests.
             resp = requests.Response()
             resp.status_code = 200
             resp._content = b'[{}]'

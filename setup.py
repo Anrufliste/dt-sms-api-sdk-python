@@ -12,8 +12,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 #with open(os.path.join(here, 'requirements.txt')) as f:
 #    requirements = f.read().splitlines()
 
-with open('requirements.txt', 'r', encoding='utf-8') as fh:
-    requirements = fh.read()
 
 with open(os.path.join(here, 'README.md')) as f:
     long_description = f.read()
@@ -35,6 +33,5 @@ setup(
     author_email='uDTSMSAPISDK@anrufliste.com',
     packages=["dt_sms_sdk"],
     python_requires='>=3.7',
-    include_package_data=True,
-    install_requires=requirements
+    include_package_data=True
 )

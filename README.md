@@ -1,4 +1,4 @@
-# dt-sms-api-sdk-python
+# dt-sms-api-sdk-python ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Anrufliste/dt-sms-api-sdk-python) [![Test](https://github.com/Anrufliste/dt-sms-api-sdk-python/actions/workflows/test.yml/badge.svg)](https://github.com/Anrufliste/dt-sms-api-sdk-python/actions/workflows/test.yml)
 
 This library is meant as an unofficial SDK (Software Development Kit) for the [Deutsche Telekom Developer SMS API](https://developer.telekom.com/products/sms-api/summary) and to give Python developers a quick start to use it withing their code.
 
@@ -56,8 +56,7 @@ p.gross_price_by_iso2("DE")  # gives you the price including vat for Germany
 
 Before starting a deep dive into telephone number plans, just be aware, that some country calling codes are shared by multiple countries e.g. +1 is used by the USA and Canada (and many more). But in the DT pricing list both countries have different prices (e.g. € 0.0058 vs. € 0.0094 Price excl. VAT on December the 31st 2022).
 
-So how do you know which country are you sending the SMS? Maybe you did not recognized the E164PhoneNumber class above while creating the Message object. The Message class will try to create such an object with the sender string parameter but have to for the recipient parameter - otherwise a ValueError is raised.
-An E164PhoneNumber object can evaluate the ISO2 code of the given number.
+So how do you know which country are you sending the SMS? You have not seen the E164PhoneNumber class while creating the Message object, yet. But the Message class will try to create such an object internally for the sender string parameter and have to do it for the recipient parameter - otherwise a ValueError would be raised (instead of a String you could also directly give such an object as those parameters). An E164PhoneNumber object can evaluate the ISO2 code of the given number.
 
 ```
 from dt_sms_sdk.phone_number import E164PhoneNumber
@@ -183,7 +182,7 @@ phone_numbers = a.phone_numbers_for_sms_sender()
 
 #### Wallet
 
-While the whole README started with the question of much sending a Message over the SMS API would cost, we know come to the question of how much money is left on your prepaid balance to conclude if you can offer to send it. 
+While the whole README started with the question of how much sending a Message over the SMS API would cost, we now come to the question of how much money is left on your prepaid balance to conclude if you can offer to send it. 
 
 A use case could be: you want to send multiple messages, but only all or none. So you can first calculate the total cost of all Messages and then check if your balance is sufficient and only then start sending. An Account object offers a method to return the Wallet object with the downloaded wallet data of that account:
 

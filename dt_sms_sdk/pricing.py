@@ -3,6 +3,7 @@ from enum import Enum
 from decimal import Decimal, getcontext, InvalidOperation
 import requests
 
+from dt_sms_sdk.dashboard import DASHBOARD_HOST, DASHBOARD_USER_AGENT
 from dt_sms_sdk.iso2_mapper import ISO2Mapper
 from dt_sms_sdk.message import Message
 
@@ -489,9 +490,9 @@ class Pricing(object):
         list, optional
             Online Pricing Data or None if an Error happens
         """
-        api_url = "https://developer.telekom.com/api/v1/prices"
+        api_url = f'https://{DASHBOARD_HOST}/api/v1/prices'
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0'
+            'User-Agent': f'{DASHBOARD_USER_AGENT}'
         }
         try:
             response = requests.get(api_url, headers=headers)

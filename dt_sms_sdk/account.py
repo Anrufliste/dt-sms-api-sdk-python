@@ -5,14 +5,13 @@ from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Union
 
+from dt_sms_sdk.dashboard import DASHBOARD_HOST, DASHBOARD_USER_AGENT
 from dt_sms_sdk.pricing import Currency
 from dt_sms_sdk.phone_number import E164PhoneNumber
 from dt_sms_sdk.sms_api import SMSAPIClient
 
 import logging
 logger = logging.getLogger(__name__)
-
-DASHBOARD_HOST = 'developer.telekom.com'
 
 
 class DashboardError(Exception):
@@ -314,7 +313,7 @@ class Account(object):
             # get new token
             api_url = f'https://{DASHBOARD_HOST}/api/v1/oauth/token'
             headers = {
-                'User-Agent': 'dt-sms-api-sdk-python 1.0',
+                'User-Agent': f'{DASHBOARD_USER_AGENT}',
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
             try:
@@ -356,7 +355,7 @@ class Account(object):
         """
         api_url = f'https://{DASHBOARD_HOST}/api/v1/wallet'
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0',
+            'User-Agent': f'{DASHBOARD_USER_AGENT}',
             'Authorization': f'Bearer {self.token()}'
         }
         try:
@@ -397,7 +396,7 @@ class Account(object):
         """
         api_url = f'https://{DASHBOARD_HOST}/api/v1/numbers'
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0',
+            'User-Agent': f'{DASHBOARD_USER_AGENT}',
             'Authorization': f'Bearer {self.token()}'
         }
         try:
@@ -447,7 +446,7 @@ class Account(object):
         """
         api_url = f'https://{DASHBOARD_HOST}/api/v1/api-keys'
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0',
+            'User-Agent': f'{DASHBOARD_USER_AGENT}',
             'Authorization': f'Bearer {self.token()}'
         }
         try:

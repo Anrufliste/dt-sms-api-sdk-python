@@ -205,6 +205,7 @@ class SMSMessageDirection(Enum):
 
 SMSAPI_DATETIME_FORMAT = '%a, %d %b %Y %H:%M:%S %z'
 SMSAPI_HOST = 'api.telekom.com'
+SMSAPI_USER_AGENT = 'dt-sms-api-sdk-python 1.0'
 
 
 class SMSAPIResponse(object):
@@ -408,7 +409,7 @@ class SMSAPIClient(object):
             logger.error('Without valid sid for the API request, the SDK could not query the status.')
             raise ValueError(f'Given sid {sid} can\'t be used to query status from the DT SMS API')
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0',
+            'User-Agent': f'{SMSAPI_USER_AGENT}',
             'X-API-Key': self.api_key
         }
         try:
@@ -465,7 +466,7 @@ class SMSAPIClient(object):
         """
         api_url = f'https://{SMSAPI_HOST}/service/sms/v1/messages'
         headers = {
-            'User-Agent': 'dt-sms-api-sdk-python 1.0',
+            'User-Agent': f'{SMSAPI_USER_AGENT}',
             'X-API-Key': self.api_key,
             'Content-Type': 'application/x-www-form-urlencoded'
         }

@@ -18,7 +18,7 @@ setuptools.setup(
     description="Unofficial Python-SDK for the SMS API of Deutsche Telekom",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version="1.0.1",
+    version="1.0.2",
     url="https://github.com/Anrufliste/dt-sms-api-sdk-python",
     author='Emil Thies',
     author_email='uDTSMSAPISDK@anrufliste.com',

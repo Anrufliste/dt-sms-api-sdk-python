@@ -334,11 +334,6 @@ class Account(object):
                 raise LoginError(username=self.username, password=self.password)
             elif response.status_code == 401:
                 raise LoginError(username=self.username, password=self.password)
-            else:
-                raise DashboardError(
-                    'While querying the token, '
-                    f'the endpoint raised a new {response.status_code} error with message: "{response.text}"'
-                )
 
     def wallet(self) -> Wallet:
         """

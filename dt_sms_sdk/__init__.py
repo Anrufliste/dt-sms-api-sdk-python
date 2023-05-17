@@ -1,7 +1,6 @@
-__version__ = "1.0.2"
+__version__ = "1.0.1"
 
 from .account import *
-from .dashboard import *
 from .iso2_mapper import *
 from .message import *
 from .phone_number import *

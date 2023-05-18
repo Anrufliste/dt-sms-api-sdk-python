@@ -136,7 +136,7 @@ While this SDK concentrates on the SMS API, it would be quite helpful to have ac
 
 ### Account
 
-The account object can be used as the origin for all methods above. Below its main methods are described. In addition, an [example script](./examples/using_account.py) is provided which covers the full flow from login to sending the SMS. 
+The account object can be used as the origin for all methods above. Below its main methods are described. In addition, an [example script](https://github.com/Anrufliste/dt-sms-api-sdk-python/tree/main/examples/using_account.py) is provided which covers the full flow from login to sending the SMS. 
 
 #### Login
 

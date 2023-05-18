@@ -164,7 +164,7 @@ class Message(object):
         else:
             logger.error(f'Message: {recipient} is not a datatype, '
                          f'which could be transferred into an E164PhoneNumber object.')
-            raise ValueError('Receiver of message is given as a usable E164PhoneNumber value.')
+            raise ValueError('Receiver of message is given not a usable value for an E164PhoneNumber.')
         self.body = body
 
     def number_of_segments(self) -> int:

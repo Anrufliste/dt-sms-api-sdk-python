@@ -136,6 +136,8 @@ While this SDK concentrates on the SMS API, it would be quite helpful to have ac
 
 ### Account
 
+The account object can be used as the origin for all methods above. Below its main methods are described. In addition, an [example script](./examples/using_account.py) is provided which covers the full flow from login to sending the SMS. 
+
 #### Login
 
 Instantiating an Account object needs to provide the credentials (username & password) of the Account on the DT Developer Portal Dashboard:

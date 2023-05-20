@@ -119,7 +119,7 @@ The next step is to use this SMSAPIClient object and give it the message to send
 response = c.send(message=m)
 ```
 
-Be aware, that multiple exceptions can happen while trying to send an SMS. In general they are from the type SMSAPIError and specified with descended types. So please invoke that method with a try block!
+Be aware, that multiple exceptions can happen while trying to send an SMS. In general, they are from the type SMSAPIError and specified with descended types. An  [example script](https://github.com/Anrufliste/dt-sms-api-sdk-python/tree/main/examples/using_token.py) is provided, which just needs your token and sender phone number (which is also taken as the receiver number).
 
 #### Status
 

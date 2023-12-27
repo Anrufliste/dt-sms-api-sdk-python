@@ -2,7 +2,12 @@
 
 This library is meant as an unofficial SDK (Software Development Kit) for the [Deutsche Telekom Developer SMS API](https://developer.telekom.com/products/sms-api/summary) and to give Python developers a quick start to use it withing their code.
 
-Please read the instructions on Deutsche Telekom Developer Portal and set up your account there to get the needed credentials. To use the SDK, you may install it with pip:
+~~Please read the instructions on Deutsche Telekom Developer Portal and set up your account there to get the needed credentials.~~ 
+
+![Retirement notification of Deutsche Telekom Developer Portal](developer-telekom-com-announcement.png)
+
+
+To use the SDK, you may install it with pip:
 
 ```
 pip install unofficial-dt-sms-api-sdk

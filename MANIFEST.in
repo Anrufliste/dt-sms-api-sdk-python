@@ -1,6 +1,7 @@
 include pyproject.toml
 include *.md
 include *.txt
+include *.png
 include LICENSE
 recursive-include dt_sms_sdk *.py
 recursive-include test *.py
